@@ -11,6 +11,27 @@ public class DelayBucket {
     public static void addToBucket(String key ,ScoredSortedItem scoredSortedItem){
         RScoredSortedSet<ScoredSortedItem> scoredSortedSet = RedissonUtil.getScoredSortedSet(key);
 
-        scoredSortedSet.add(scoredSortedItem., );
+        scoredSortedSet.add(scoredSortedItem.getDelayTime(), scoredSortedItem);
     }
+
+    /**
+     * get min delayTime item
+     * @param key
+     * @return
+     */
+    public static ScoredSortedItem getItemFromBucket(String key){
+        RScoredSortedSet<ScoredSortedItem> scoredSortedSet = RedissonUtil.getScoredSortedSet(key);
+
+        if(scoredSortedSet.size()<=0){
+            return null;
+        }
+
+        return scoredSortedSet.first();
+    }
+
+    public static void deleteFromBukcet(String key,ScoredSortedItem scoredSortedItem){
+        RScoredSortedSet<ScoredSortedItem> scoredSortedSet = RedissonUtil.getScoredSortedSet(key);
+        scoredSortedSet.remove(scoredSortedItem);
+    }
+
 }
