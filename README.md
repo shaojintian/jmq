@@ -139,14 +139,28 @@ eg:
 
 ## 💡核心设计
 
-1. xxxxx
-2. xxxxx
-3. xxxxx
+数据结构
+1. JobPool用来存放所有Job的元信息。
+2. DelayBucket是一组以时间为维度的有序队列，用来存放所有需要延迟的Job（这里只存放Job Id）。
+3. Timer负责实时扫描各个Bucket，并将delay时间大于等于当前时间的Job放入到对应的Ready Queue。
+3. ReadyQueue存放处于Ready状态的Job（这里只存放JobId），以供消费程序消费。
+
+状态转换
+<a href="https://github.com/shaojintian/jmq/">
+    <img src="docs/images/job-state.png" alt="Logo">
+</a>
+
+job生命周期
+
+- 用户对某个商品下单，系统创建订单成功，同时往延迟队列里put一个job。job结构为：{‘topic':'orderclose’, ‘id':'ordercloseorderNoXXX’, ‘delay’:1800 ,’TTR':60 , ‘body':’XXXXXXX’}
+- 延迟队列收到该job后，先往job pool中存入job信息，然后根据delay计算出绝对执行时间，并以轮询(round-robbin)的方式将job id放入某个bucket。
+- timer每时每刻都在轮询各个bucket，当1800秒（30分钟）过后，检查到上面的job的执行时间到了，取得job id从job pool中获取元信息。如果这时该job处于deleted状态，则pass，继续做轮询；如果job处于非deleted状态，首先再次确认元信息中delay是否大于等于当前时间，如果满足则根据topic将job id放入对应的ready queue，然后从bucket中移除；如果不满足则重新计算delay时间，再次放入bucket，并将之前的job id从bucket中移除。
+- 消费端轮询对应的topic的ready queue（这里仍然要判断该job的合理性），获取job后做自己的业务逻辑。与此同时，服务端将已经被消费端获取的job按照其设定的TTR，重新计算执行时间，并将其放入bucket。
+- 消费端处理完业务后向服务端响应finish，服务端根据job id删除对应的元信息。
 
 ## 📊性能测试
 
- 1. xxxxx
- 2. xxxxx
+ 暂无
 
 
 ### 贡献者
@@ -183,12 +197,8 @@ E-mail: sjt@hnu.edu.cn
 
 ### 鸣谢
 
-- [GitHub Emoji Cheat Sheet](https://www.webpagefx.com/tools/emoji-cheat-sheet)
-- [Img Shields](https://shields.io)
-- [Choose an Open Source License](https://choosealicense.com)
-- [GitHub Pages](https://pages.github.com)
-- [Animate.css](https://daneden.github.io/animate.css)
-- [xxxxxxxxxxxxxx](https://connoratherton.com/loaders)
+- [有赞延迟队列设计](https://tech.youzan.com/queuing_delay/)
+- [Redis 实现队列](https://segmentfault.com/a/1190000011084493)
 
 ### 赞助
 
