@@ -45,7 +45,7 @@ a lightweight message queue  inspired by youzan
 - [x] 一种带有延迟功能的消息队列
 
 <a href="https://github.com/shaojintian/jmq/">
-    <img src="docs/images/delay-queue.png" alt="Logo" width="80" height="80">
+    <img src="docs/images/delay-queue.png" alt="Logo">
 </a>
 
 
